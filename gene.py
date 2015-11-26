@@ -4,6 +4,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from evaluator import Evaluater
+from multiprocessing import Pool
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -39,6 +40,8 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 
 def main():
     random.seed(128)
+    # multiprocesssing pool
+    p = Pool(4)
 
     pop = toolbox.population(n=100)
 
@@ -54,7 +57,7 @@ def main():
     print("Start of evolution")
 
     # Evaluate the entire population
-    fitnesses = list(map(toolbox.evaluate, pop))
+    fitnesses = list(p.map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
         ind.fitness.values = fit
 
@@ -65,7 +68,7 @@ def main():
         print("-- Generation %i --" % g)
 
         offspring = toolbox.select(pop, len(pop))
-        offspring = list(map(toolbox.clone, offspring))
+        offspring = list(p.map(toolbox.clone, offspring))
 
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
 
@@ -82,7 +85,7 @@ def main():
                 del mutant.fitness.values
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = map(toolbox.evaluate, invalid_ind)
+        fitnesses = p.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
 
