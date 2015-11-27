@@ -75,4 +75,10 @@ class Evaluater(object):
         plt.show()
 
 
+    def save_result(self):
+        data = pd.DataFrame({'id': self.data['傳染病報告單電腦編號'],
+                                  'x': self.data.x,
+                                  'y': self.data.y,
+                                  'class':self.labels_})
+        data.to_csv("result.csv")
 # e = Evaluater("data.tsv", 5, 200000, 0.02)
