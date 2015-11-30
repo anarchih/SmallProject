@@ -11,7 +11,7 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
-e = Evaluater("data.tsv", k = 10, dist = 0.02, capacity = 200000)
+e = Evaluater("data.tsv", k = 10, dist = 0.02, capacity = 150, date_range = 3)
 def randrange(Min, Max):
     return random.random() * (Max - Min) + Min
 
@@ -30,7 +30,7 @@ toolbox.register("individual", tools.initRepeat, creator.Individual,
 
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-toolbox.register("evaluate", e.evaluate)
+toolbox.register("evaluate", e.eval)
 
 toolbox.register("mate", tools.cxTwoPoint)
 

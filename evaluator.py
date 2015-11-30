@@ -9,10 +9,12 @@ class Cluster(object):
         self.week = [0] * 60
 
 class Evaluater(object):
-    def __init__(self, filename, k, dist, capacity):
+    def __init__(self, filename, k, dist, capacity, date_range):
         self.data = self.read_tsv(filename)
         self.k = k
         self.dist = dist
+        self.capacity = capacity
+        self.date_range = dt.timedelta(date_range)
         self.cluster = Cluster(capacity)
         self.xmin = self.data.x.min()
         self.ymin = self.data.y.min()
@@ -30,6 +32,9 @@ class Evaluater(object):
         dtime = pd.DataFrame([[dt.datetime.strptime('2015/' + i, "%Y/%m/%d")] for i in data['發病日期']], columns=['date'])
         data = data.join(dtime)
         del data['發病日期']
+
+        data = data.sort(['date'])
+        data = data.reset_index()
         return data
 
     def evaluate(self, ind):
@@ -41,18 +46,69 @@ class Evaluater(object):
                     break
         return count,
 
+    def eval(self, ind):
+        count = 0
+        latest_date = [dt.datetime(1990, 1, 1)] * self.k
+        sum_capacity = [0] * self.k
+        tmp = [[0] * self.date_range.days for i in range(self.k)]
+        for i, p1 in enumerate(zip(self.data.x, self.data.y)):
+            c = self.find_data_belongs_to(p1, ind)
+            if c != 10000:
+                date_gap = self.data.date[i] - latest_date[c]
+                latest_date[c] = self.data.date[i]
+                if date_gap >= self.date_range:
+                    sum_capacity[c] = 1
+                    tmp[c] = [0] * self.date_range.days
+                    tmp[c][0] = 1
+                    count += 1
+                else:
+                    t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
+                    t[0] += 1
+                    sum_c = sum(t)
+                    if sum_c <= self.capacity:
+                        tmp[c] = t
+                        sum_capacity[c] = sum_c
+                        count += 1
+        return count,
+
+    def find_data_belongs_to(self, p1, ind):
+        current_cluster = 10000
+        Min = 10000
+        for j, p2 in enumerate(ind):
+            dist = self.distance(p1, p2)
+            if dist < self.dist and dist < Min:
+                Min = dist
+                current_cluster = j
+        return current_cluster
+
     def distance(self, p1, p2):
         return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
     def calc_labels(self, ind):
+        count = 0
+        latest_date = [dt.datetime(1990, 1, 1)] * self.k
+        sum_capacity = [0] * self.k
+        tmp = [[0] * self.date_range.days for i in range(self.k)]
         for i, p1 in enumerate(zip(self.data.x, self.data.y)):
-            Min = 10000
-            for j, p2 in enumerate(ind, 1):
-                dist = self.distance(p1, p2)
-                if dist < self.dist and dist < Min:
-                    Min = dist
-                    self.labels_[i] = j
-
+            c = self.find_data_belongs_to(p1, ind)
+            if c != 10000:
+                date_gap = self.data.date[i] - latest_date[c]
+                latest_date[c] = self.data.date[i]
+                if date_gap >= self.date_range:
+                    sum_capacity[c] = 1
+                    tmp[c] = [0] * self.date_range.days
+                    tmp[c][0] = 1
+                    count += 1
+                else:
+                    t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
+                    t[0] += 1
+                    sum_c = sum(t)
+                    if sum_c <= self.capacity:
+                        tmp[c] = t
+                        sum_capacity[c] = sum_c
+                        count += 1
+                        self.labels_[i] = c + 1
+        return count,
 
     def draw_result(self):
         self.draw_data()
