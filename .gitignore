@@ -1,2 +1,3 @@
-data.tsv
+*.tsv
+*.csv
 __pycache__
