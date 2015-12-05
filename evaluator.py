@@ -20,7 +20,7 @@ class Evaluater(object):
         self.xmax = max(self.data['x'])
         self.ymin = min(self.data['y'])
         self.ymax = max(self.data['y'])
-        self.labels_ = [0 for i in range(len(self.data))]
+        self.labels_ = [0 for i in range(len(self.data['x']))]
 
     def read_tsv(self, filename):
         data = {'x': [], 'y': [], 'date':[]}
