@@ -11,7 +11,7 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
-e = Evaluater("data.tsv", k = 10, dist = 0.02, capacity = 150, date_range = 3)
+e = Evaluater("data.tsv", k = 10, dist = 0.02, capacity = 50, date_range = 3)
 def randrange(Min, Max):
     return random.random() * (Max - Min) + Min
 
@@ -110,7 +110,7 @@ def main():
     best_ind = tools.selBest(pop, 1)[0]
     print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
     e.calc_labels(best_ind)
-    e.save_result()
+    # e.save_result()
     e.draw_result()
 if __name__ == "__main__":
     main()

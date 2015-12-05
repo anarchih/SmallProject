@@ -1,8 +1,8 @@
-import pandas as pd
+# import pandas as pd
 import datetime as dt
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from collections import Counter
-
+import csv
 
 class Cluster(object):
     def __init__(self, capacity):
@@ -16,30 +16,38 @@ class Evaluater(object):
         self.capacity = capacity
         self.date_range = dt.timedelta(date_range)
         self.cluster = Cluster(capacity)
-        self.xmin = self.data.x.min()
-        self.ymin = self.data.y.min()
-        self.xmax = self.data.x.max()
-        self.ymax = self.data.y.max()
+        self.xmin = min(self.data['x'])
+        self.xmax = max(self.data['x'])
+        self.ymin = min(self.data['y'])
+        self.ymax = max(self.data['y'])
         self.labels_ = [0 for i in range(len(self.data))]
 
     def read_tsv(self, filename):
-        data = pd.read_csv(filename, sep="\t")
-        # rows = random.sample(list(data.index), 5000)
-        # data = data.ix[rows]
-        data = data.rename(columns = {'經度座標':'x'})
-        data = data.rename(columns = {'緯度座標':'y'})
-
-        dtime = pd.DataFrame([[dt.datetime.strptime('2015/' + i, "%Y/%m/%d")] for i in data['發病日期']], columns=['date'])
-        data = data.join(dtime)
-        del data['發病日期']
-
-        data = data.sort(['date'])
-        data = data.reset_index()
+        data = {'x': [], 'y': [], 'date':[]}
+        f = open(filename, "r")
+        f.readline()
+        for row in csv.reader(f, delimiter='\t'):
+            data['x'].append(float(row[9]))
+            data['y'].append(float(row[10]))
+            data['date'].append(dt.datetime.strptime('2015/' + row[5], "%Y/%m/%d"))
         return data
+        # data = pd.read_csv(filename, sep="\t")
+        # # rows = random.sample(list(data.index), 5000)
+        # # data = data.ix[rows]
+        # data = data.rename(columns = {'經度座標':'x'})
+        # data = data.rename(columns = {'緯度座標':'y'})
+
+        # dtime = pd.DataFrame([[dt.datetime.strptime('2015/' + i, "%Y/%m/%d")] for i in data['發病日期']], columns=['date'])
+        # data = data.join(dtime)
+        # del data['發病日期']
+
+        # data = data.sort(['date'])
+        # data = data.reset_index()
+        # return data
 
     def evaluate(self, ind):
         count = 0
-        for p1 in zip(self.data.x, self.data.y):
+        for p1 in zip(self.data['x'], self.data['y']):
             for j, p2 in enumerate(ind):
                 if self.distance(p1, p2) < self.dist:
                     count += 1
@@ -51,11 +59,11 @@ class Evaluater(object):
         latest_date = [dt.datetime(1990, 1, 1)] * self.k
         sum_capacity = [0] * self.k
         tmp = [[0] * self.date_range.days for i in range(self.k)]
-        for i, p1 in enumerate(zip(self.data.x, self.data.y)):
+        for i, p1 in enumerate(zip(self.data['x'], self.data['y'])):
             c = self.find_data_belongs_to(p1, ind)
             if c != 10000:
-                date_gap = self.data.date[i] - latest_date[c]
-                latest_date[c] = self.data.date[i]
+                date_gap = self.data['date'][i] - latest_date[c]
+                latest_date[c] = self.data['date'][i]
                 if date_gap >= self.date_range:
                     sum_capacity[c] = 1
                     tmp[c] = [0] * self.date_range.days
@@ -89,11 +97,11 @@ class Evaluater(object):
         latest_date = [dt.datetime(1990, 1, 1)] * self.k
         sum_capacity = [0] * self.k
         tmp = [[0] * self.date_range.days for i in range(self.k)]
-        for i, p1 in enumerate(zip(self.data.x, self.data.y)):
+        for i, p1 in enumerate(zip(self.data['x'], self.data['y'])):
             c = self.find_data_belongs_to(p1, ind)
             if c != 10000:
-                date_gap = self.data.date[i] - latest_date[c]
-                latest_date[c] = self.data.date[i]
+                date_gap = self.data['date'][i] - latest_date[c]
+                latest_date[c] = self.data['date'][i]
                 if date_gap >= self.date_range:
                     sum_capacity[c] = 1
                     tmp[c] = [0] * self.date_range.days
@@ -114,7 +122,7 @@ class Evaluater(object):
         self.draw_data()
         # self.draw_range()
         print(Counter(self.labels_))
-        plt.show()
+        # plt.show()
 
     def draw_range(self):
         pass
@@ -122,19 +130,21 @@ class Evaluater(object):
 
     def draw_data(self):
         tmp = [20 if self.labels_[i] != 0 else 1 for i in range(len(self.labels_))]
-        plt.scatter(self.data.x, self.data.y, s = tmp, c = self.labels_)
+        # plt.scatter(self.data['x'], self.data['y'], s = tmp, c = self.labels_)
 
-        # plt.scatter(self.data.x, self.data.y, s=tmp, c=self.result)
+        # plt.scatter(self.data['x'], self.data['y'], s=tmp, c=self.result)
 
     def draw_raw_data(self):
-        plt.scatter(self.data.x,self.data.y,s=1)
-        plt.show()
+        pass
+        # plt.scatter(self.data['x'],self.data['y'],s=1)
+        # plt.show()
 
 
     def save_result(self):
-        data = pd.DataFrame({'id': self.data['傳染病報告單電腦編號'],
-                                  'x': self.data.x,
-                                  'y': self.data.y,
-                                  'class':self.labels_})
-        data.to_csv("result.csv")
-# e = Evaluater("data.tsv", 5, 200000, 0.02)
+        pass
+        # data = pd.DataFrame({'id': self.data['傳染病報告單電腦編號'],
+                                  # 'x': self.data['x'],
+                                  # 'y': self.data['y'],
+                                  # 'class':self.labels_})
+        # data.to_csv("result.csv")
+e = Evaluater("data.tsv", 5, 0.02, 200000, 3)
