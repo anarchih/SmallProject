@@ -131,6 +131,5 @@ def main():
     print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
     e.calc_labels(best_ind)
     # e.save_result()
-    e.draw_result()
 if __name__ == "__main__":
     main()
