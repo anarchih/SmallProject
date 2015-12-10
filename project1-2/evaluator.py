@@ -144,6 +144,16 @@ class Evaluater(object):
                                   # 'class':self.labels_})
         # data.to_csv("result.csv")
 
+    def plot_raw(self):
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        ax1.scatter(self.data['x'], self.data['y'], s=1)
+        for i in self.hospital:
+            ax1.scatter(i.x, i.y, s=20, c='r')
+        plt.show()
 
 if __name__ == "__main__":
+    e = Evaluater("sorted.tsv", dist = 0.02, total_capacity = 800, date_range = 3)
+    e.plot_raw()
     pass
