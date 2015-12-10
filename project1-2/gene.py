@@ -11,11 +11,9 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
-e = Evaluater("sorted.tsv", dist = 0.02, total_capacity = 50, date_range = 3)
+e = Evaluater("sorted.tsv", dist = 0.02, total_capacity = 800, date_range = 3)
 
-def randCapacity(ind):
-    h = e.hospital
-    l = [randint(0, h[i].max_capacity) for i in range(e.k_hospitals)]
+def randToTotalCapacity(l):
     sum_l = sum(l)
     while sum_l > e.total_capacity:
         r = randint(0, e.k_hospitals - 1)
@@ -27,6 +25,12 @@ def randCapacity(ind):
         if l[r] < e.hospital[r].max_capacity:
             l[r] += 1
             sum_l += 1
+    return l
+
+def randCapacity(ind):
+    h = e.hospital
+    l = [randint(0, h[i].max_capacity) for i in range(e.k_hospitals)]
+    l = randToTotalCapacity(l)
     return ind(l)
 
 def mutCapacity(ind):
@@ -36,13 +40,21 @@ def mutCapacity(ind):
     ind[i1], ind[i2] = ind[i1] - diff, ind[i2] + diff
     return ind
 
+def cxCapacity(ind1, ind2):
+    for i in range(len(ind1)):
+        r = random.random()
+        if r < 0.5:
+            ind1[i], ind2[i] = ind2[i], ind1[i]
+    ind1 = randToTotalCapacity(ind1)
+    ind2 = randToTotalCapacity(ind2)
+    return ind1, ind2
 toolbox.register("individual", randCapacity, creator.Individual)
 
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", e.eval)
 
-toolbox.register("mate", tools.cxTwoPoint)
+toolbox.register("mate", cxCapacity)
 
 toolbox.register("mutate", mutCapacity)
 
