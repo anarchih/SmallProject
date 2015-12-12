@@ -102,7 +102,6 @@ class Evaluater(object):
                         count += 1
         return count,
 
-        return 1,
 
     def find_data_nearest_to(self, i, p, ind):
         return self.nearest_hospital[i]
@@ -112,12 +111,13 @@ class Evaluater(object):
 
     def calc_labels(self, ind):
         count = 0
-        latest_date = [dt.datetime(1990, 1, 1)] * self.k
-        sum_capacity = [0] * self.k
-        tmp = [[0] * self.date_range.days for i in range(self.k)]
+        latest_date = [dt.datetime(1990, 1, 1)] * self.k_hospitals
+        sum_capacity = [0] * self.k_hospitals
+        tmp = [[0] * self.date_range.days for i in range(self.k_hospitals)]
         for i, p1 in enumerate(zip(self.data['x'], self.data['y'])):
-            c = self.find_data_belongs_to(p1, ind)
-            if c != 10000:
+            c = self.nearest(i, p1, ind)
+            if c != 0:
+                c -= 1
                 date_gap = self.data['date'][i] - latest_date[c]
                 latest_date[c] = self.data['date'][i]
                 if date_gap >= self.date_range:
@@ -129,7 +129,7 @@ class Evaluater(object):
                     t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
                     t[0] += 1
                     sum_c = sum(t)
-                    if sum_c <= self.capacity:
+                    if sum_c <= ind[c]:
                         tmp[c] = t
                         sum_capacity[c] = sum_c
                         count += 1
