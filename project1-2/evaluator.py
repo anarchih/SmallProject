@@ -12,16 +12,26 @@ class Hospital(object):
         self.min_capacity = min_capacity
 
 class Evaluater(object):
-    def __init__(self, filename, dist, total_capacity, date_range):
-        self.data = self.resolve_data_points(filename)
-        self.hospital = self.resolve_hospital("hospital.tsv")
+    def __init__(self, filename, dist, total_capacity, date_range, default_max_capacity, extend_capacity_list):
         self.dist = dist
-
-        self.nearest_hospital = self.calc_nearest_hospital(self.data, self.hospital)
         self.total_capacity = total_capacity
         self.date_range = dt.timedelta(date_range)
+        self.extend_num = len(extend_capacity_list)
+
+        self.data = self.resolve_data_points(filename)
+        self.default_max_capacity = default_max_capacity
+        self.extend_capacity_list = extend_capacity_list
+        self.hospital = self.resolve_hospital("hospital.tsv")
+
+        # self.nearest_hospital = self.calc_nearest_hospital(self.data, self.hospital)
         self.labels_ = [0 for i in range(len(self.data['x']))]
         self.k_hospitals = len(self.hospital)
+
+        # data range
+        self.xmin = min(self.data['x'])
+        self.xmax = max(self.data['x'])
+        self.ymin = min(self.data['y'])
+        self.ymax = max(self.data['y'])
 
     def resolve_data_points(self, filename):
         data = {'x': [], 'y': [], 'date':[]}
@@ -38,7 +48,15 @@ class Evaluater(object):
         f = open(filename, "r")
         f.readline()
         for row in csv.reader(f, delimiter='\t'):
-            h_list.append(Hospital(row[0], float(row[2]), float(row[1]), 0, 100))
+            if not self.default_max_capacity:
+                dc = int(row[3])
+            else:
+                dc = self.default_max_capacity
+            h_list.append(Hospital(row[0], float(row[2]), float(row[1]), 0, dc))
+
+        for i in self.extend_capacity_list:
+            h_list.append(Hospital("Tmp", -1, -1, 0, i))
+
         return h_list
 
     def calc_nearest_hospital(self, data, hospital):
@@ -55,13 +73,15 @@ class Evaluater(object):
     def nearest(self, i, p, ind):
         alpha = 1
         beta = 1
+        hospital_pos_list = [(self.hospital[j].x, self.hospital[j].y) for j in range(self.k_hospitals - len(self.extend_capacity_list))]
+        hospital_pos_list += ind[1]
         dist_list = [0] * self.k_hospitals
         s = 0
         for j in range(self.k_hospitals):
-            d = self.distance(p, (self.hospital[j].x, self.hospital[j].y))
-            if d <= self.dist and ind[j] > 0:
+            d = self.distance(p, hospital_pos_list[j])
+            if d <= self.dist and ind[0][j] > 0:
                 dist_list[j] = d
-                s += ind[j] ** alpha / dist_list[j] ** beta
+                s += ind[0][j] ** alpha / dist_list[j] ** beta
             elif d == 0:
                 return j + 1
             else:
@@ -71,7 +91,7 @@ class Evaluater(object):
         r = random()
         for j, hos in enumerate(self.hospital):
             if dist_list[j] != -1.:
-                p += ind[j] ** alpha / dist_list[j] ** beta / s
+                p += ind[0][j] ** alpha / dist_list[j] ** beta / s
                 if r < p:
                     return j + 1
         return 0
@@ -96,7 +116,7 @@ class Evaluater(object):
                     t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
                     t[0] += 1
                     sum_c = sum(t)
-                    if sum_c <= ind[c]:
+                    if sum_c <= ind[0][c]:
                         tmp[c] = t
                         sum_capacity[c] = sum_c
                         count += 1
@@ -144,16 +164,19 @@ class Evaluater(object):
                                   # 'class':self.labels_})
         # data.to_csv("result.csv")
 
-    def plot_raw(self):
+    def plot_raw(self, extend_list):
         import matplotlib.pyplot as plt
         fig = plt.figure()
         ax1 = fig.add_subplot(111)
         ax1.scatter(self.data['x'], self.data['y'], s=1)
         for i in self.hospital:
             ax1.scatter(i.x, i.y, s=20, c='r')
+
+        for i in extend_list:
+            ax1.scatter(i[0], i[1], s=20, c='g')
         plt.show()
 
 if __name__ == "__main__":
-    e = Evaluater("sorted.tsv", dist = 0.02, total_capacity = 800, date_range = 3)
+    e = Evaluater("sorted.tsv", dist=0.02, total_capacity=800, date_range=3, default_max_capacity=150, extend_capacity_list=[20] * 3)
     e.plot_raw()
     pass

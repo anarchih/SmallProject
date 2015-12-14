@@ -11,7 +11,13 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
-e = Evaluater("sorted.tsv", dist = 0.02, total_capacity = 800, date_range = 3)
+e = Evaluater("sorted.tsv", dist=0.02, total_capacity=1000, date_range=3, default_max_capacity=150, extend_capacity_list=[150] * 5)
+
+def randrange(Min, Max):
+    return random.random() * (Max - Min) + Min
+
+def randCoord(xmin, xmax, ymin, ymax):
+    return (randrange(xmin, xmax), randrange(ymin, ymax))
 
 def randToTotalCapacity(l):
     sum_l = sum(l)
@@ -28,35 +34,56 @@ def randToTotalCapacity(l):
     return l
 
 def randCapacity(ind):
+    # rand capacity
     h = e.hospital
     l = [randint(0, h[i].max_capacity) for i in range(e.k_hospitals)]
     l = randToTotalCapacity(l)
-    return ind(l)
 
-def mutCapacity(ind):
-    i1 = randint(0, e.k_hospitals - 1)
-    i2 = randint(0, e.k_hospitals - 1)
-    diff = randint(0, min(ind[i1], e.hospital[i2].max_capacity - ind[i2]))
-    ind[i1], ind[i2] = ind[i1] - diff, ind[i2] + diff
+    # rand position
+    m =  [randCoord(e.xmin, e.xmax, e.ymin, e.ymax)] * e.extend_num
+    return ind([l, m])
+
+def mutCapacity(R, ind):
+    r = random.random()
+    if r < R:
+        # mutate capacity
+        i1 = randint(0, e.k_hospitals - 1)
+        i2 = randint(0, e.k_hospitals - 1)
+        diff = randint(0, min(ind[0][i1], e.hospital[i2].max_capacity - ind[0][i2]))
+        ind[0][i1], ind[0][i2] = ind[0][i1] - diff, ind[0][i2] + diff
+    else:
+        # mutate position
+        i = random.randint(0, e.extend_num - 1)
+        ind[1][i] = (randrange(e.xmin, e.xmax), randrange(e.ymin, e.ymax))
+        return ind
+
     return ind
 
-def cxCapacity(ind1, ind2):
-    for i in range(len(ind1)):
-        r = random.random()
-        if r < 0.5:
-            ind1[i], ind2[i] = ind2[i], ind1[i]
-    ind1 = randToTotalCapacity(ind1)
-    ind2 = randToTotalCapacity(ind2)
+
+def cxCapacity(R, ind1, ind2):
+    # cross capacity
+    r = random.random()
+    if r < R:
+        for i in range(len(ind1)):
+            r = random.random()
+            if r < 0.5:
+                ind1[0][i], ind2[0][i] = ind2[0][i], ind1[0][i]
+    else:
+        # cross position
+        ind1[0] = randToTotalCapacity(ind1[0])
+        ind2[0] = randToTotalCapacity(ind2[0])
+        ind1[1], ind2[1] = tools.cxTwoPoint(ind1[1], ind2[1])
     return ind1, ind2
+
 toolbox.register("individual", randCapacity, creator.Individual)
 
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", e.eval)
 
-toolbox.register("mate", cxCapacity)
+toolbox.register("mate", cxCapacity, 0.5)
 
-toolbox.register("mutate", mutCapacity)
+toolbox.register("mutate", mutCapacity, 0.5)
 
 toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -129,6 +156,7 @@ def main():
 
     best_ind = tools.selBest(pop, 1)[0]
     print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
+    e.plot_raw(best_ind[1])
     e.calc_labels(best_ind)
     # e.save_result()
 if __name__ == "__main__":
