@@ -61,17 +61,17 @@ def mutCapacity(R, ind):
 
 
 def cxCapacity(R, ind1, ind2):
-    # cross capacity
     r = random.random()
     if r < R:
+        # cross capacity
         for i in range(len(ind1)):
             r = random.random()
             if r < 0.5:
                 ind1[0][i], ind2[0][i] = ind2[0][i], ind1[0][i]
-    else:
-        # cross position
         ind1[0] = randToTotalCapacity(ind1[0])
         ind2[0] = randToTotalCapacity(ind2[0])
+    else:
+        # cross position
         ind1[1], ind2[1] = tools.cxTwoPoint(ind1[1], ind2[1])
     return ind1, ind2
 
