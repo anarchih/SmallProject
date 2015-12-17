@@ -156,8 +156,7 @@ def main():
 
     best_ind = tools.selBest(pop, 1)[0]
     print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
-    e.plot_raw(best_ind[1])
     e.calc_labels(best_ind)
-    # e.save_result()
+    e.save_result(best_ind)
 if __name__ == "__main__":
     main()

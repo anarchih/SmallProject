@@ -26,6 +26,7 @@ class Evaluater(object):
         # self.nearest_hospital = self.calc_nearest_hospital(self.data, self.hospital)
         self.labels_ = [0 for i in range(len(self.data['x']))]
         self.k_hospitals = len(self.hospital)
+        self.serve_total = [0] * self.k_hospitals
 
         # data range
         self.xmin = min(self.data['x'])
@@ -145,18 +146,43 @@ class Evaluater(object):
                     tmp[c] = [0] * self.date_range.days
                     tmp[c][0] = 1
                     count += 1
+                    self.serve_total[c] += 1
+                    self.labels_[i] = c + 1
                 else:
                     t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
                     t[0] += 1
                     sum_c = sum(t)
-                    if sum_c <= ind[c]:
+                    if sum_c <= ind[0][c]:
                         tmp[c] = t
                         sum_capacity[c] = sum_c
                         count += 1
+                        self.serve_total[c] += 1
                         self.labels_[i] = c + 1
         return count,
 
-    def save_result(self):
+    def save_result(self, ind):
+        # save data result
+        data = self.data
+        d = [[data['x'][i], data['y'][i], self.labels_[i]] for i in range(len(data['x']))]
+        f = open("data_result.csv","w")
+        w = csv.writer(f)
+        w.writerows(d)
+        f.close()
+        # save hospital result
+        hos = self.hospital
+        h = [[hos[i].x, hos[i].y, 1] for i in range(len(hos))]
+        j = 0
+        for i in range(len(h)):
+            if h[i][0] == -1:
+                h[i][0] = ind[1][j][0]
+                h[i][1] = ind[1][j][1]
+                h[i][2] = 0
+                j += 1
+        f = open("hospital_result.csv","w")
+        w = csv.writer(f)
+        w.writerows(h)
+        f.close()
+        print(self.serve_total)
         pass
         # data = pd.DataFrame({'id': self.data['傳染病報告單電腦編號'],
                                   # 'x': self.data['x'],
