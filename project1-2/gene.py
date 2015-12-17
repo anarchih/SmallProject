@@ -40,7 +40,7 @@ def randCapacity(ind):
     l = randToTotalCapacity(l)
 
     # rand position
-    m =  [randCoord(e.xmin, e.xmax, e.ymin, e.ymax)] * e.extend_num
+    m = [randCoord(e.xmin, e.xmax, e.ymin, e.ymax) for i in range(e.extend_num)]
     return ind([l, m])
 
 def mutCapacity(R, ind):
