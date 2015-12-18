@@ -80,7 +80,7 @@ class Evaluater(object):
         s = 0
         for j in range(self.k_hospitals):
             d = self.distance(p, hospital_pos_list[j])
-            if d <= self.dist and ind[0][j] > 0:
+            if 0 < d <= self.dist and ind[0][j] > 0:
                 dist_list[j] = d
                 s += ind[0][j] ** alpha / dist_list[j] ** beta
             elif d == 0:
