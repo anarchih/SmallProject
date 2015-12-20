@@ -124,7 +124,16 @@ class Evaluater(object):
 
 
     def find_data_nearest_to(self, i, p, ind):
-        return self.nearest_hospital[i]
+        hospital_pos_list = [(self.hospital[j].x, self.hospital[j].y) for j in range(self.k_hospitals - len(self.extend_capacity_list))]
+        hospital_pos_list += ind[1]
+        q = 0
+        min_dist = 100000
+        for j, hos in enumerate(hospital_pos_list):
+            dist = self.distance(p, hos)
+            if dist < min_dist and dist < self.dist:
+                min_dist = dist
+                q = j + 1
+        return q
 
     def distance(self, p1, p2):
         return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
@@ -202,5 +211,4 @@ class Evaluater(object):
 
 if __name__ == "__main__":
     e = Evaluater("sorted.tsv", dist=0.02, total_capacity=800, date_range=3, default_max_capacity=150, extend_capacity_list=[20] * 3)
-    e.plot_raw()
     pass
