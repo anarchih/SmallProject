@@ -114,12 +114,11 @@ class Evaluater(object):
                     tmp[c][0] = 1
                     count += 1
                 else:
-                    t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
-                    t[0] += 1
-                    sum_c = sum(t)
-                    if sum_c <= ind[0][c]:
-                        tmp[c] = t
-                        sum_capacity[c] = sum_c
+                    tmp[c] = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
+                    sum_c = sum(tmp[c])
+                    if sum_c < ind[0][c]:
+                        sum_capacity[c] += 1
+                        tmp[c][0] += 1
                         count += 1
         return count,
 
@@ -149,12 +148,11 @@ class Evaluater(object):
                     self.serve_total[c] += 1
                     self.labels_[i] = c + 1
                 else:
-                    t = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
-                    t[0] += 1
-                    sum_c = sum(t)
-                    if sum_c <= ind[0][c]:
-                        tmp[c] = t
-                        sum_capacity[c] = sum_c
+                    tmp[c] = [0] * date_gap.days + tmp[c][0:self.date_range.days - date_gap.days]
+                    sum_c = sum(tmp[c])
+                    if sum_c < ind[0][c]:
+                        sum_capacity[c] += 1
+                        tmp[c][0] += 1
                         count += 1
                         self.serve_total[c] += 1
                         self.labels_[i] = c + 1
