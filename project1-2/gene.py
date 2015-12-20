@@ -1,4 +1,5 @@
 import random
+import sys
 from random import randint
 from deap import base
 from deap import creator
@@ -11,7 +12,7 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
-e = Evaluater("sorted.tsv", dist=0.02, total_capacity=1000, date_range=3, default_max_capacity=150, extend_capacity_list=[150] * 5)
+e = Evaluater(sys.argv[1], dist=0.02, total_capacity=800, date_range=3, default_max_capacity=100, extend_capacity_list=[30] * 5)
 
 def randrange(Min, Max):
     return random.random() * (Max - Min) + Min
@@ -81,9 +82,9 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", e.eval)
 
-toolbox.register("mate", cxCapacity, 0.5)
+toolbox.register("mate", cxCapacity, 0.4)
 
-toolbox.register("mutate", mutCapacity, 0.5)
+toolbox.register("mutate", mutCapacity, 0.4)
 
 toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -99,7 +100,7 @@ def main():
     #
     # NGEN  is the number of generations for which the
     #       evolution runs
-    CXPB, MUTPB, NGEN = 0.5, 0.2, 40
+    CXPB, MUTPB, NGEN = 0.6, 0.4, 80
 
     print("Start of evolution")
 
